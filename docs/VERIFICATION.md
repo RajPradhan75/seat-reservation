@@ -1,6 +1,22 @@
 # Verification status
 
-Last updated: 2026-10-04.
+Last updated: 2026-10-05.
+
+## Current local demo verification — 2026-10-05
+
+- Docker PostgreSQL 17.11 is now running; the Java application starts and readiness returns 200 UP.
+- The user reported the smoke script passing.
+- All 19 requests in the manual demo collection were executed against the running API and returned
+  their expected statuses; replay identity, final counts, cancelled history, and metrics were checked.
+- `docs/demo-checks.sql` executed successfully against real PostgreSQL. It confirmed Alice's cancelled
+  two-seat history, Bob's current A1 ownership, matching usage counts, and final inventory 4/0/1/5.
+- This run created a fresh `interview-demo` show. Start another fresh show for your own demo.
+- Request payloads were verified over HTTP; import/rendering in the Bruno/Postman desktop UIs was not
+  exercised here. The full concurrency suite, 20,000-request burst, API container build, and public
+  deployment remain unverified.
+
+The entries below record the initial build environment on 2026-10-04. The Docker/database-startup
+blockers described there have since been resolved for local manual testing.
 
 ## Verified in this workspace
 

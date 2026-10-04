@@ -1,0 +1,502 @@
+{
+  "info": {
+    "name": "Seat Reservation - Manual Interview Demo",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Run numbered requests manually. Set local token variables, then copy show_id and Alice reservation_id from responses. No scripts or secrets are embedded. See docs/MANUAL_DEMO.md."
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "alice_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bob_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "show_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "reservation_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Readiness",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/actuator/health/readiness",
+        "description": "200: status UP.",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "02 Create show",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/shows",
+        "description": "201. Copy id into show_id. Always create a fresh show for a new demo.",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"interview-demo\",\n  \"seats\": [\n    \"A1\",\n    \"A2\",\n    \"A3\",\n    \"A4\",\n    \"A5\"\n  ],\n  \"price_paise\": 25000,\n  \"per_user_limit\": 4\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "03 Initial inventory",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/shows/{{show_id}}",
+        "description": "200: available 5, confirmed 0, held 0.",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "04 Alice books A1 A2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{alice_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "alice-book-{{show_id}}"
+          }
+        ],
+        "url": "{{base_url}}/shows/{{show_id}}/reserve",
+        "description": "201, amount_paise 50000. Copy reservation_id into reservation_id.",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"seats\": [\n    \"A1\",\n    \"A2\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "05 Alice retries same booking",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{alice_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "alice-book-{{show_id}}"
+          }
+        ],
+        "url": "{{base_url}}/shows/{{show_id}}/reserve",
+        "description": "200, same reservation ID; Idempotency-Replayed true.",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"seats\": [\n    \"A1\",\n    \"A2\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "06 Same key changed seats",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{alice_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "alice-book-{{show_id}}"
+          }
+        ],
+        "url": "{{base_url}}/shows/{{show_id}}/reserve",
+        "description": "409 IDEMPOTENCY_KEY_REUSED.",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"seats\": [\n    \"A3\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "07 Bob attempts occupied seat",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "bob-book-{{show_id}}"
+          }
+        ],
+        "url": "{{base_url}}/shows/{{show_id}}/reserve",
+        "description": "409 SEAT_TAKEN.",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"seats\": [\n    \"A1\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "08 All or nothing",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "bob-partial-{{show_id}}"
+          }
+        ],
+        "url": "{{base_url}}/shows/{{show_id}}/reserve",
+        "description": "409 SEAT_TAKEN. A3 remains available even though it was requested with occupied A2.",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"seats\": [\n    \"A2\",\n    \"A3\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "09 Alice exceeds limit",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{alice_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "alice-limit-{{show_id}}"
+          }
+        ],
+        "url": "{{base_url}}/shows/{{show_id}}/reserve",
+        "description": "409 PER_USER_LIMIT; 2 existing + 3 requested > 4.",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"seats\": [\n    \"A3\",\n    \"A4\",\n    \"A5\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "10 Reject spoofed identity",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "spoof-{{show_id}}"
+          }
+        ],
+        "url": "{{base_url}}/shows/{{show_id}}/reserve",
+        "description": "400 INVALID_REQUEST; unknown user_id is rejected.",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"seats\": [\n    \"A3\"\n  ],\n  \"user_id\": \"alice\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "11 Inventory before cancellation",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/shows/{{show_id}}",
+        "description": "200: available 3, confirmed 2, held 0.",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "12 Bob cannot cancel Alice",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}"
+          }
+        ],
+        "url": "{{base_url}}/reservations/{{reservation_id}}/cancel",
+        "description": "404 NOT_FOUND; no ownership changes.",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "13 Alice cancels",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{alice_token}}"
+          }
+        ],
+        "url": "{{base_url}}/reservations/{{reservation_id}}/cancel",
+        "description": "200, status cancelled.",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "14 Inventory after cancellation",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/shows/{{show_id}}",
+        "description": "200: available 5, confirmed 0, held 0.",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "15 Bob books released A1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "bob-fresh-{{show_id}}"
+          }
+        ],
+        "url": "{{base_url}}/shows/{{show_id}}/reserve",
+        "description": "201. Fresh key because the previous decline is retained. Keep reservation_id pointing to ALICE for next steps.",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"seats\": [\n    \"A1\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "16 Old cancellation repeats safely",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{alice_token}}"
+          }
+        ],
+        "url": "{{base_url}}/reservations/{{reservation_id}}/cancel",
+        "description": "200 cancelled; Bob still owns A1.",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "17 Final inventory",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/shows/{{show_id}}",
+        "description": "200: available 4, confirmed 1, held 0, total_seats 5.",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "18 Alice reservation current state",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{alice_token}}"
+          }
+        ],
+        "url": "{{base_url}}/reservations/{{reservation_id}}",
+        "description": "200: cancelled; history remains.",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "19 Metrics",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/metrics",
+        "description": "200 text. Locate the seats metric for this show_id; confirmed=1 and available=4.",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "response": []
+    }
+  ]
+}

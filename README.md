@@ -58,6 +58,12 @@ set +a
 ./mvnw spring-boot:run
 ```
 
+## Manual interview demo
+
+Use [the manual demo guide](docs/MANUAL_DEMO.md), import the
+[Bruno/Postman request collection](docs/api/manual-demo.postman_collection.json), and inspect
+PostgreSQL with the [read-only SQL checks](docs/demo-checks.sql). No database GUI is required.
+
 ## Try the API
 
 An operator mints tokens; callers cannot grant themselves identities or admin scope through a public
