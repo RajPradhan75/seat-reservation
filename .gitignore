@@ -6,3 +6,5 @@
 /.m2/
 __pycache__/
 .DS_Store
+/.burst-env/
+*.tokens.json

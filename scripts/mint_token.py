@@ -7,9 +7,11 @@ import hmac
 import json
 import os
 import time
+from functools import lru_cache
 from pathlib import Path
 
 
+@lru_cache(maxsize=1)
 def secret():
     value = os.environ.get('JWT_SECRET')
     if not value:

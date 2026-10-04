@@ -1,0 +1,35 @@
+name: Build and verify
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Real PostgreSQL integration and API tests
+        run: ./mvnw -B clean verify
+      - name: Build and start containers
+        run: |
+          ./scripts/setup-env.sh
+          docker compose up --build -d
+      - name: Check startup and reservation lifecycle
+        run: python3 scripts/smoke.py http://localhost:8080
+      - name: HTTP concurrency check
+        run: ./burst.sh http://localhost:8080 --requests 500 --concurrency 500
+      - name: Check dependency failure
+        run: |
+          docker compose stop db
+          python3 scripts/smoke.py http://localhost:8080 --expect-db-down
+      - name: Container diagnostics
+        if: always()
+        run: docker compose logs --tail=150
+      - name: Stop containers
+        if: always()
+        run: docker compose down
