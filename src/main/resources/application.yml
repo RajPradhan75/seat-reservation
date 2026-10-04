@@ -13,8 +13,10 @@ spring:
       minimum-idle: 2
       connection-timeout: 30000
   jackson:
+    property-naming-strategy: SNAKE_CASE
     deserialization:
       fail-on-unknown-properties: true
+      accept-float-as-int: false
   lifecycle:
     timeout-per-shutdown-phase: 30s
 
