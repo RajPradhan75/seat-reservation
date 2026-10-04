@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:17.6
+    image: postgres:17.11
     environment:
       POSTGRES_DB: seats
       POSTGRES_USER: seats
