@@ -34,6 +34,7 @@ public class ApiErrors {
     }
 
     public static ResponseEntity<Models.ErrorBody> error(int status, String code, String message) {
-        return ResponseEntity.status(status).body(new Models.ErrorBody(code, message, MDC.get("request_id")));
+        return ResponseEntity.status(status).contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .body(new Models.ErrorBody(code, message, MDC.get("request_id")));
     }
 }

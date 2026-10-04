@@ -32,16 +32,42 @@ class BookingIntegrationTest {
 
     @BeforeAll
     static void start() throws Exception {
-        postgres = EmbeddedPostgres.builder().setPort(0).start();
+        String url = System.getenv("TEST_DB_URL");
+        String user = System.getenv().getOrDefault("TEST_DB_USER", "postgres");
+        String password = System.getenv().getOrDefault("TEST_DB_PASSWORD", "postgres");
+        if (url == null || url.isBlank()) {
+            postgres = EmbeddedPostgres.builder().setPort(0).setLocaleConfig("locale", "C").start();
+            url = postgres.getJdbcUrl("postgres", "postgres");
+        }
         // Two independent application instances sharing the same real PostgreSQL database.
         for (int i = 0; i < 2; i++) {
             var app = new SpringApplicationBuilder(SeatReservationApplication.class).run(
-                    "--server.port=0", "--spring.datasource.url=" + postgres.getJdbcUrl("postgres", "postgres"),
-                    "--spring.datasource.username=postgres", "--spring.datasource.password=postgres",
+                    "--server.port=0", "--spring.datasource.url=" + url,
+                    "--spring.datasource.username=" + user, "--spring.datasource.password=" + password,
                     "--app.jwt.secret=" + SECRET, "--spring.datasource.hikari.maximum-pool-size=12");
             apps.add(app);
             bases.add("http://localhost:" + ((WebServerApplicationContext) app).getWebServer().getPort());
         }
+    }
+
+    @AfterEach
+    void verifyDatabaseInvariants() {
+        if (apps.isEmpty()) return;
+        var db = apps.getFirst().getBean(org.springframework.jdbc.core.simple.JdbcClient.class);
+        long invalidUsage = db.sql("""
+                SELECT count(*) FROM user_show_usage u JOIN shows s ON s.id = u.show_id
+                WHERE u.active_seat_count > s.per_user_limit OR u.active_seat_count <> (
+                    SELECT count(*) FROM show_seats t JOIN reservations r ON r.id = t.reservation_id
+                    WHERE t.show_id = u.show_id AND r.user_id = u.user_id
+                )
+                """).query(Long.class).single();
+        assertThat(invalidUsage).isZero();
+        assertThat(db.sql("SELECT count(*) FROM idempotency_records WHERE http_status IS NULL")
+                .query(Long.class).single()).isZero();
+        assertThat(db.sql("""
+                SELECT count(*) FROM show_seats t JOIN reservations r ON r.id = t.reservation_id
+                WHERE r.status <> 'confirmed'
+                """).query(Long.class).single()).isZero();
     }
 
     @AfterAll

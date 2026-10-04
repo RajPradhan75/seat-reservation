@@ -18,6 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
+@org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 public class SecurityConfig {
     @Bean
     JwtDecoder jwtDecoder(@Value("${app.jwt.secret}") String secret,
