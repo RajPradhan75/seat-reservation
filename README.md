@@ -26,6 +26,22 @@ docker compose logs -f api
 
 ## Build and test
 
+### Run from IntelliJ
+
+Start Docker PostgreSQL with `docker compose up -d db`, then select the shared **Seat Reservation Local**
+Application run configuration. It activates the `local` profile, which reads the existing `.env` from
+the project working directory. No password needs to be copied into the run configuration. Set the
+project SDK to Java 21. Stop any other application instance using port 8080 before starting it.
+
+If the configuration is not visible, reopen the project or create an Application configuration for
+`com.example.seats.SeatReservationApplication`, module `seat-reservation`, working directory the project
+root, and program arguments `--spring.profiles.active=local`. Leave environment overrides empty.
+Explicit environment variables still override file properties; remove stale DB_PASSWORD/JWT_SECRET
+or SPRING_DATASOURCE_PASSWORD overrides when using this local configuration. Do not paste secrets into
+the shared `.run` file. The default production profile continues to require environment credentials.
+
+### Maven checks
+
 Requires JDK 21. The committed Maven wrapper downloads the pinned Maven version.
 
 ```sh

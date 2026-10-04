@@ -1,0 +1,5 @@
+# Explicitly opt in for local development; production never imports this file by default.
+# The extension hint lets Spring read the generated KEY=value file as Java properties.
+spring:
+  config:
+    import: "file:./.env[.properties]"
