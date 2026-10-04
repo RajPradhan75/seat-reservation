@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:17.6
+    environment:
+      POSTGRES_DB: seats
+      POSTGRES_USER: seats
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Run scripts/setup-env.sh first}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - seat-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U seats -d seats"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  api:
+    build: .
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/seats
+      DB_USER: seats
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?Run scripts/setup-env.sh first}
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  seat-data:
