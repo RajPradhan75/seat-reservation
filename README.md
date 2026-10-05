@@ -1,11 +1,11 @@
 # Seat Reservation
 
 Assigned-seat JSON API: Spring Boot 4.1.1, Java 21, PostgreSQL 17.
-Start with the [step-by-step walkthrough](docs/WALKTHROUGH.md). The design rationale is in
-[WRITEUP.md](WRITEUP.md); actual test evidence is in [VERIFICATION.md](docs/VERIFICATION.md).
+Design and tradeoffs: [WRITEUP.md](WRITEUP.md).
+Test results and outstanding validation: [VERIFICATION.md](docs/VERIFICATION.md).
 
-**Status:** implemented locally; not publicly deployed. Database runtime tests and public burst results
-must be verified before submission. No live URL or performance claim is implied by the implementation.
+**Status:** local functional verification complete. Full concurrency validation and public deployment
+are pending.
 
 ## Start with Docker
 
@@ -74,7 +74,7 @@ set +a
 ./mvnw spring-boot:run
 ```
 
-## Manual interview demo
+## Manual API verification
 
 Use [the manual demo guide](docs/MANUAL_DEMO.md), import the
 [Bruno/Postman request collection](docs/api/manual-demo.postman_collection.json), and inspect

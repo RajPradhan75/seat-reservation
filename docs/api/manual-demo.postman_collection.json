@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Seat Reservation - Manual Interview Demo",
+    "name": "Seat Reservation - Manual API Verification",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "Run numbered requests manually. Set local token variables, then copy show_id and Alice reservation_id from responses. No scripts or secrets are embedded. See docs/MANUAL_DEMO.md."
   },

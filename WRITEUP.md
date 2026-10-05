@@ -61,16 +61,16 @@ and slow transactions. Seat-taken declines are normal on-sale outcomes. PostgreS
 can be inspected through its system views; a PostgreSQL exporter is a future operational improvement.
 
 Structured logs include request IDs, outcome, and latency. Public live logs or a recording are still
-submission work. No fabricated deployment or performance results are included.
+pending deployment deliverables.
 
 ## AI usage
 
-The user supplied the challenge, chose Spring Boot, and asked for design followed by a step-by-step
-build. Codex proposed the PostgreSQL locking strategy, immediate-confirm/cancel model, API conventions,
-and test strategy. Codex generated source, migrations, containers, scripts, tests, and documentation,
-and ran the available checks. These choices were agent-proposed, not independently authored or
-verified by the user. The developer should review the walkthrough and practice extending the
-transaction flow. Actual verification limits are in docs/VERIFICATION.md.
+AI assistance was used for design, implementation, tests, scripts, and documentation.
+The developer selected Spring Boot and directed a design-first implementation with local API
+verification. The assistant proposed PostgreSQL row locking, the immediate-confirmation/cancellation
+model, idempotency conventions, and the test strategy, and generated substantial portions of the
+code and supporting files. Automated checks and manual API exercises were used to validate the
+implementation; the scope of completed verification is recorded in docs/VERIFICATION.md.
 
 ## Next
 

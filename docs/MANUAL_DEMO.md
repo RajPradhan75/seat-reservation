@@ -1,10 +1,10 @@
-# Manual interview demo
+# Manual API verification
 
 Use this guide alongside `api/manual-demo.postman_collection.json` and `demo-checks.sql`.
 The collection contains 19 ordered requests, their bodies/headers, and expected responses.
 There are no embedded credentials, JavaScript tests, or automatic ID-capture scripts.
 
-## 1. Choose a demo tool
+## 1. API and database tools
 
 Recommended: **Bruno desktop for requests**, plus **psql inside Docker for database evidence**.
 If you already know Postman, use it instead; the same supplied collection works there.
@@ -19,7 +19,7 @@ If you already know Postman, use it instead; the same supplied collection works 
 
 Swagger UI is an alternative API interface, not a database browser or concurrency proof. The manual
 API client makes switching between Alice and Bob explicit. Python smoke/burst scripts remain useful
-for repeatable verification; they do not need to be the main visual part of the interview demo.
+for repeatable verification alongside the manual requests.
 
 Official import instructions:
 - Postman: https://learning.postman.com/docs/getting-started/importing-and-exporting/importing-data
@@ -74,10 +74,10 @@ Do not put JWT_SECRET, DB_PASSWORD, or generated bearer tokens into a committed/
 
 ## 4. Run the numbered requests manually
 
-Click each request, show its method/URL/body, press Send, and explain its response. Do not run the
+Send each request in order and compare its response with the expected result. Do not run the
 whole collection unattended: two IDs need to be copied from responses during the walkthrough.
 
-| # | Action | Expected result | What to explain |
+| # | Action | Expected result | Behavior verified |
 | --- | --- | --- | --- |
 | 01 | Readiness | 200 UP | API and database dependency are ready |
 | 02 | Create show | 201; five available seats | Admin creates fixed inventory and integer price |
@@ -193,23 +193,20 @@ Open `docs/demo-checks.sql` in a SQL editor associated with this connection and 
 No psql backslash commands are used in that file, so it works in both clients. Confirm that the first
 result matches your API show ID, especially if you have rehearsed more than once.
 
-Your logs identify IntelliJ IDEA Community 2024.2.1, so do not depend on its having the database tools
-available. Docker psql works immediately; DBeaver is an independent option.
+## 7. Concurrency verification
 
-## 7. Explain correctness and show concurrency
+ReservationService.reserve(), lockUsage(), lockSeats(), and cancel() implement the transaction flow.
+The user row protects the limit, sorted seat locks protect allocation, and the unique key protects
+retries. One transaction commits ownership, history, usage, and idempotency together.
 
-After the manual flow, open ReservationService.reserve(), lockUsage(), lockSeats(), and cancel().
-Explain: the user row protects the limit, sorted seat locks protect allocation, the unique key protects
-retries, and one transaction commits ownership/history/usage/idempotency together.
-
-Manual clicks cannot prove concurrent safety. Run the burst separately after rehearsing it:
+Manual clicks cannot prove concurrent safety. Run the burst separately:
 
 ```sh
 ./burst.sh http://localhost:8080 --requests 500 --concurrency 500
 ```
 
 It requires Python 3.10+. For the hot-seat phase expect 1 creation and 499 seat-taken declines, plus
-zero 5xx/transport failures and a final PASS across the other scenarios. Show actual results only.
+zero 5xx/transport failures and a final PASS across the other scenarios. Record the observed results.
 A 500-request local run is not proof of the full 20,000-request public deployment requirement.
 The scripts' shows have different names, so they do not replace the latest interview-demo SQL target.
 

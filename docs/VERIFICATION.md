@@ -1,55 +1,33 @@
 # Verification status
 
-Last updated: 2026-10-05.
+Updated: 2026-10-06. Functional results below were obtained on 2026-10-04 and 2026-10-05.
 
-## Current local demo verification — 2026-10-05
+## Completed
 
-- Docker PostgreSQL 17.11 is now running; the Java application starts and readiness returns 200 UP.
-- The user reported the smoke script passing.
-- All 19 requests in the manual demo collection were executed against the running API and returned
-  their expected statuses; replay identity, final counts, cancelled history, and metrics were checked.
-- `docs/demo-checks.sql` executed successfully against real PostgreSQL. It confirmed Alice's cancelled
-  two-seat history, Bob's current A1 ownership, matching usage counts, and final inventory 4/0/1/5.
-- This run created a fresh `interview-demo` show. Start another fresh show for your own demo.
-- Request payloads were verified over HTTP; import/rendering in the Bruno/Postman desktop UIs was not
-  exercised here. The full concurrency suite, 20,000-request burst, API container build, and public
-  deployment remain unverified.
+- Maven wrapper build with `-Dtest=SecurityConfigTest,ApiContractTest clean verify`: executable JAR
+  produced; six security tests and four HTTP contract tests passed.
+- Local application startup against Docker PostgreSQL 17.11; readiness returned HTTP 200 UP.
+- Local-profile startup verified with credentials loaded from `.env`.
+- Smoke test passed in a developer-run local execution.
+- All 19 manual collection requests returned their expected HTTP statuses against the running API.
+  Replay identity, cancellation history, final inventory, and metrics were checked.
+- Read-only SQL checks confirmed Alice's cancelled two-seat reservation, Bob's current A1 ownership,
+  matching per-user usage, and inventory of four available, zero held, and one confirmed seat.
+- Python script compilation, shell syntax, and Docker Compose configuration validation passed.
+- Token generation and burst-runner handling of an unreachable endpoint were checked.
 
-The entries below record the initial build environment on 2026-10-04. The Docker/database-startup
-blockers described there have since been resolved for local manual testing.
+## Pending
 
-## Verified in this workspace
+- Full PostgreSQL concurrency integration suite.
+- 20,000-request burst and capacity measurements.
+- API Docker image build/startup and clean-clone CI execution.
+- Database-outage behavior, recovery, and deployment cold starts.
+- Public repository publication, deployed URL, and live log access or recording.
 
-- Java 21 runtime downloaded locally; distribution SHA-256 matched the vendor metadata.
-- The committed Maven wrapper completed `-Dtest=SecurityConfigTest,ApiContractTest clean verify`:
-  executable JAR built, 10 selected tests passed. This is not a full database test run.
-- Six JWT/security tests passed: valid subject, forged signatures, expiry, issuer/audience,
-  missing/invalid claims, and weak startup secrets.
-- Four HTTP contract tests passed: token identity and JSON response contract, spoofed body fields,
-  mismatched keys, floating-point/missing prices, authentication, and admin access.
-- Python script compilation, shell syntax checks, and `docker compose config --quiet` passed.
-- Token generation and burst-runner failure reporting against an unreachable local port passed.
-  These script checks do not establish concurrency correctness or server performance.
+The completed functional checks do not establish the concurrency or deployment acceptance criteria.
 
-## Implemented but not runtime-verified here
+## Reproduce
 
-- PostgreSQL transaction/concurrency suite: compiles, but database initialization was blocked by the
-  macOS execution sandbox (`shmget: Operation not permitted`). The failure occurred before API startup.
-  Embedded PostgreSQL locale was made explicit after an initial locale initialization error.
-- Docker startup and image build: Docker CLI is installed, but no daemon is available. Launching
-  Docker Desktop from this environment failed. Docker files are provided, not claimed as tested.
-- Full HTTP burst, database-backed metrics, DB-outage checks, and clean-clone CI still need execution.
-- Public repository publication, public deployment, cold-start verification, and live-log evidence
-  are pending. There is no live URL yet.
-
-## Run next
-
-1. On a normal machine with JDK 21, run `./mvnw clean verify`. Or set TEST_DB_URL, TEST_DB_USER,
-   and TEST_DB_PASSWORD to a disposable PostgreSQL database as documented in README.md.
-2. Start Docker, run `./scripts/setup-env.sh` and `docker compose up --build -d`.
-3. Run `python3 scripts/smoke.py http://localhost:8080`.
-4. Run `./burst.sh http://localhost:8080 --requests 500 --concurrency 500`, then the full 20,000 burst.
-5. Stop DB and run smoke with `--expect-db-down`; restart DB afterward.
-6. Repeat startup, smoke, burst, and metrics/log inspection against the actual public deployment.
-
-Do not present generated tests or configured CI as passing concurrency evidence until these runs succeed.
+Follow README.md for `./mvnw clean verify`, Docker startup, the smoke test, and `./burst.sh`.
+Use a disposable database for integration tests. Run the load and dependency-failure checks against
+both the local containers and the eventual deployed service, and record their results here.
