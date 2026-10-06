@@ -24,11 +24,13 @@ server:
   port: ${PORT:8080}
   shutdown: graceful
   tomcat:
-    max-connections: ${HTTP_MAX_CONNECTIONS:512}
+    max-connections: ${HTTP_MAX_CONNECTIONS:8192}
     accept-count: 25000
     max-keep-alive-requests: 1
 
 app:
+  booking:
+    concurrency: ${BOOKING_CONCURRENCY:12}
   jwt:
     secret: ${JWT_SECRET}
     issuer: seat-reservation
