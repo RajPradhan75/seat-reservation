@@ -49,6 +49,21 @@ public class ReservationService {
                     json.readTree(original.body()), true);
         }
 
+        // A committed occupied-seat snapshot can decline immediately. It never approves a sale.
+        // Concurrent cancellation may make the seat free later; this decline linearizes at this read.
+        var observed = db.sql("""
+                SELECT seat_label, reservation_id FROM show_seats
+                WHERE show_id = :show AND seat_label IN (:seats)
+                """).param("show", showId).param("seats", seats)
+                .query((rs, row) -> new LockedSeat(rs.getString(1), rs.getObject(2, UUID.class))).list();
+        if (observed.size() != seats.size()) {
+            throw ApiException.badRequest("One or more seat labels do not exist in this show.");
+        }
+        if (observed.stream().anyMatch(s -> s.reservationId() != null)) {
+            return decline(showId, userId, key, "seat_taken", "SEAT_TAKEN",
+                    "One or more requested seats are unavailable.");
+        }
+
         // Global mutation order: idempotency -> user usage -> reservation (cancel only) -> sorted seats.
         int used = lockUsage(showId, userId);
         var locked = lockSeats(showId, seats);

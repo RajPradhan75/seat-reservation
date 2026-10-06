@@ -7,6 +7,11 @@ each physical seat one row and one current reservation pointer. The transaction 
 and requested seats before checking availability and the limit. Assignment also uses
 `WHERE reservation_id IS NULL` and checks affected-row counts.
 
+An occupied-seat snapshot can reject a new key without locking user usage or the hot seat. This
+only declines: it linearizes at that committed read, and the original decline is retained even if
+a concurrent cancellation subsequently releases the seat. A read of available seats never approves
+allocation; the locked transaction rechecks every seat before confirming.
+
 Mutation lock order: idempotency (reserve only), user/show usage, existing reservation (cancel only),
 then seats under C-collation label ordering. Multi-seat requests are all-or-nothing. Deterministic seat
 ordering prevents cyclic waits between overlapping seat requests. Operations never lock another
