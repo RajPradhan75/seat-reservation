@@ -76,7 +76,8 @@ implementation; the scope of completed verification is recorded in docs/VERIFICA
 
 ## Next
 
-Complete database/container tests, deploy publicly, verify cold starts and DB outages, and run the
-full public burst. Publish repository URL, live URL, metrics, and log evidence. Future engineering:
+The database/container suite and 20,000-client CI burst pass. The service is deployed, but the free
+Render instance failed the full public burst. Next: provide enough hosting capacity, rerun the public
+test, and measure inactivity-driven cold starts. See docs/VERIFICATION.md for evidence. Future engineering:
 managed identity and key rotation, event retention/aggregation, dashboards and alerts, backup/restore
 checks, payment integration if needed, and a guarded expiry/confirmation lifecycle if holds are added.

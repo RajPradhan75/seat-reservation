@@ -32,6 +32,10 @@ services:
         generateValue: true
       - key: DB_POOL_SIZE
         value: "16"
+      - key: HTTP_MAX_CONNECTIONS
+        value: "64"
+      - key: SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT
+        value: "180000"
 
 databases:
   - name: seat-reservation-db

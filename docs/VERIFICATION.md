@@ -1,6 +1,6 @@
 # Verification status
 
-Updated: 2026-10-06.
+Updated: 2026-10-07.
 
 ## Verified in CI
 
@@ -21,7 +21,11 @@ Tomcat accepts at most 512 active connections and explicitly closes each after i
 
 The service is deployed at https://seat-reservation-api-osgz.onrender.com. Readiness returned HTTP 200 with UP on 2026-10-06.
 
-The 20,000-request result above is from CI, not Render. Verification of the updated deployed revision, authenticated live-URL load testing and a deployment cold-start check remain pending. Render controls its own network queue settings; Docker Compose sysctls do not configure Render.
+The updated revision `7b4249c` is live. The authenticated reservation lifecycle smoke test passed after deployment startup. Public metrics and sanitized logs are accessible.
+
+The equivalent public burst did **not** pass on the free instance. An independent Linux runner issued 20,000 concurrent requests: one confirmed, 500 seat-taken declines, 4,285 HTTP 5xx responses, and 15,214 transport failures, in 146.332 seconds. [Public test run](https://github.com/RajPradhan75/seat-reservation/actions/runs/37534157567); [raw results](evidence/render-20000-burst.jsonl). This fails the live concurrency acceptance bar. The CI capacity result must not be represented as a public deployment result.
+
+Render reports a 0.15 CPU / 512 MiB instance limit. The public configuration now limits active Tomcat connections to 64 and permits up to 180 seconds for a pool connection. Application logs and client outcomes showed pool timeouts and gateway/connection failures under overload. Render controls its own edge/network queue settings; Docker Compose sysctls do not configure Render. More hosting capacity and another measured public burst are required before claiming full compliance. Inactivity-driven cold-start timing remains unmeasured; deployment startup and post-load recovery have been observed.
 
 ## Reproduce
 
