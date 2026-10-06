@@ -175,6 +175,9 @@ async def run(args):
                                          for i in range(100)))
         checks.append(Counter(classify(r) for r in retries) == Counter({'confirmed': 1, 'replayed': 99}))
         checks.append(len({r[1].get('reservation_id') for r in retries}) == 1)
+        print(json.dumps({'scenario': 'idempotent-retries',
+                          'outcomes': dict(Counter(classify(r) for r in retries)),
+                          'error_examples': [r[1] for r in retries if r[0] == 0 or r[0] >= 500][:3]}))
         conflict = await reserve(replay_show, 0, ['A3'], replay_key)
         checks.append(conflict[0] == 409 and conflict[1].get('code') == 'IDEMPOTENCY_KEY_REUSED')
         await final_state(replay_show, 2)
