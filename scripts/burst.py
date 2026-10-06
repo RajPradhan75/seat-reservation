@@ -121,7 +121,11 @@ async def run(args):
         started = time.monotonic()
         results = await asyncio.gather(*(reserve(hot, i, ['A1'], f'hot-{hot}-{i}') for i in range(args.requests)))
         stop.set()
-        await observer
+        observer.cancel()
+        try:
+            await observer
+        except asyncio.CancelledError:
+            pass
         distribution = Counter(classify(r) for r in results)
         checks.append(distribution == Counter({'confirmed': 1, 'SEAT_TAKEN': args.requests - 1}))
         checks.append(bool(samples) and all(samples))
