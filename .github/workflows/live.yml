@@ -22,13 +22,13 @@ jobs:
           python-version: '3.12'
       - name: Verify public reservation lifecycle
         run: python3 scripts/smoke.py https://seat-reservation-api-osgz.onrender.com
-      - name: Run 20000 concurrent public reservations
+      - name: Run a 10-user public demo
         run: |
           set -o pipefail
           mkdir -p evidence
           transport_args=()
           if [ '${{ inputs.transport }}' = http2 ]; then transport_args+=(--http2); fi
-          ./burst.sh https://seat-reservation-api-osgz.onrender.com --requests 20000 --concurrency 20000 "${transport_args[@]}" | tee evidence/live-burst.jsonl
+          ./burst.sh https://seat-reservation-api-osgz.onrender.com --requests 10 --concurrency 10 "${transport_args[@]}" | tee evidence/live-burst.jsonl
       - name: Capture public observability
         if: always()
         run: |

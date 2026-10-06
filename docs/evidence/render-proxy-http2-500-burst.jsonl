@@ -1,0 +1,10 @@
+{"transport": "HTTP/2", "tls_connections": 5, "requests_per_connection": 100, "automatic_retries": 0}
+{"scenario": "hot-seat", "requests": 500, "concurrency": 500, "seconds": 41.393, "outcomes": {"SEAT_TAKEN": 499, "confirmed": 1}, "transport": "HTTP/2", "negotiated_versions": {"HTTP/2": 500}, "reconciliation_samples": 45, "all_samples_valid": true, "transport_errors": {}, "transport_error_examples": [], "http_statuses": {"409": 499, "201": 1}, "http_error_examples": []}
+{"show_id": "54207443-bc29-4b16-b150-7d9e15f8dbc6", "counts": {"available": 1, "held": 0, "confirmed": 1, "total_seats": 2}, "reconciles": true}
+{"scenario": "idempotent-retries", "outcomes": {"replayed": 99, "confirmed": 1}, "error_examples": []}
+{"show_id": "c7f1c714-e1dc-46f4-824f-42e32aed3f4c", "counts": {"available": 1, "held": 0, "confirmed": 2, "total_seats": 3}, "reconciles": true}
+{"show_id": "76dc2c58-7b64-48ae-b4d9-8e5a799df311", "counts": {"available": 6, "held": 0, "confirmed": 4, "total_seats": 10}, "reconciles": true}
+{"show_id": "65f9f415-7790-4d20-bbb4-7fab73010712", "counts": {"available": 1, "held": 0, "confirmed": 1, "total_seats": 2}, "reconciles": true}
+{"show_id": "65f9f415-7790-4d20-bbb4-7fab73010712", "counts": {"available": 0, "held": 0, "confirmed": 2, "total_seats": 2}, "reconciles": true}
+{"show_id": "54207443-bc29-4b16-b150-7d9e15f8dbc6", "counts": {"available": 1, "held": 0, "confirmed": 1, "total_seats": 2}, "reconciles": true}
+{"result": "PASS", "reservation_outcomes": {"SEAT_TAKEN": 500, "confirmed": 8, "replayed": 99, "IDEMPOTENCY_KEY_REUSED": 1, "PER_USER_LIMIT": 6}, "checks_passed": 19, "checks_total": 19}

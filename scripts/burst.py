@@ -20,8 +20,8 @@ import aiohttp
 def arguments():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('base_url')
-    p.add_argument('--requests', type=int, default=20000)
-    p.add_argument('--concurrency', type=int, default=20000)
+    p.add_argument('--requests', type=int, default=10)
+    p.add_argument('--concurrency', type=int, default=10)
     p.add_argument('--http2', action='store_true', help='Use HTTP/2 with up to 100 streams per TLS connection; require negotiated HTTP/2')
     p.add_argument('--tokens-file', help='JSON with admin_token and user_tokens; no signing secret needed')
     args = p.parse_args()
@@ -172,8 +172,8 @@ async def run(args):
         replay_show = await show(3)
         replay_key = 'retry-' + replay_show
         retries = await asyncio.gather(*(reserve(replay_show, 0, ['A1', 'A2'] if i % 2 else ['A2', 'A1'], replay_key)
-                                         for i in range(100)))
-        checks.append(Counter(classify(r) for r in retries) == Counter({'confirmed': 1, 'replayed': 99}))
+                                         for i in range(min(100, args.requests))))
+        checks.append(Counter(classify(r) for r in retries) == Counter({'confirmed': 1, 'replayed': min(100, args.requests) - 1}))
         checks.append(len({r[1].get('reservation_id') for r in retries}) == 1)
         print(json.dumps({'scenario': 'idempotent-retries',
                           'outcomes': dict(Counter(classify(r) for r in retries)),

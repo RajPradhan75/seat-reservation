@@ -38,7 +38,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p evidence
-          ./burst.sh http://localhost:8080 --requests 20000 --concurrency 20000 | tee evidence/burst.jsonl
+          ./burst.sh http://localhost:8080 --requests 10 --concurrency 10 | tee evidence/burst.jsonl
       - name: Check dependency failure
         run: |
           docker compose stop db

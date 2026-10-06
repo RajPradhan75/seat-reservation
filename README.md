@@ -4,7 +4,7 @@ Assigned-seat JSON API: Spring Boot 4.1.1, Java 21, PostgreSQL 17.
 Design and tradeoffs: [WRITEUP.md](WRITEUP.md).
 Test results and outstanding validation: [VERIFICATION.md](docs/VERIFICATION.md).
 
-**Status:** clean-checkout CI passed all 19 tests and a 20,000-concurrent-request burst with zero 5xx or transport errors. The public API passed the lifecycle smoke test, but its free Render instance failed the equivalent 20,000-request public burst. See [verification evidence](docs/VERIFICATION.md).
+**Status:** the free public API passed the authenticated lifecycle smoke test and all 19 checks in a 10-user concurrent demo. A prior clean-checkout CI run also passed all 19 tests and a 20,000-request burst. The full 20,000-request public burst failed; the small demo does not establish that acceptance bar. See [verification evidence](docs/VERIFICATION.md).
 
 ## Start with Docker
 
@@ -142,17 +142,19 @@ Validation is `400`; authentication `401`; admin authorization `403`; absent res
 Dependency failures are `503`, not false seat declines. Retry uncertain outcomes with the same key.
 Responses include `X-Request-ID`; reserve responses also include `Idempotency-Replayed`.
 
-## One-command burst
+## One-command demo and optional full burst
 
-Python 3.10+ with venv support is required. The wrapper installs pinned aiohttp on first use.
+The default is a small 10-user demo. Automated CI and public workflows also use 10 users. A passing demo does not establish the assignment's 20,000-request public acceptance bar. Run the full test explicitly with `--requests 20000 --concurrency 20000` when desired.
+
+Python 3.10+ with venv support is required. The wrapper installs the pinned burst dependencies into a local virtual environment.
 Run only against a service you own or have permission to test.
 
 ```sh
-# 20,000 distinct buyers compete for one seat, then other correctness scenarios run.
+# Small demo: 10 distinct buyers compete for one seat, then correctness scenarios run.
 ./burst.sh http://localhost:8080
 
-# Smaller diagnostic run:
-./burst.sh http://localhost:8080 --requests 500 --concurrency 500
+# Explicit small demo:
+./burst.sh http://localhost:8080 --requests 10 --concurrency 10
 ```
 
 Output includes outcome distribution, 5xx/transport failures, final counts, and reconciliation reads
@@ -230,6 +232,6 @@ public burst. Add the public repository URL, live URL, metrics URL, and log acce
 
 ### Optional HTTP/2 public burst
 
-Run `./burst.sh <BASE_URL> --http2 --tokens-file evaluator.tokens.json` to issue the same 20,000 concurrent logical requests over 200 TLS connections, with up to 100 HTTP/2 streams per connection. The runner requires HTTP/2 negotiation, reports the transport and actual response versions, and never retries failures. This reduces connection pressure; it does not prove that a 20,000-connection HTTP/1 storm passes. The default remains HTTP/1.1.
+Run `./burst.sh <BASE_URL> --requests 20000 --concurrency 20000 --http2 --tokens-file evaluator.tokens.json` to issue 20,000 concurrent logical requests over 200 TLS connections, with up to 100 HTTP/2 streams per connection. The runner requires HTTP/2 negotiation, reports the transport and actual response versions, and never retries failures. This reduces connection pressure; it does not prove that a 20,000-connection HTTP/1 storm passes. The default remains HTTP/1.1.
 
 The Docker runtime includes HAProxy and Spring Boot in one container. The proxy forwards at most 12 simultaneous writes and four reads/probes to Java on loopback port 8081. PostgreSQL retains all correctness decisions. Docker Compose caps the API container at 512 MiB and uses the same 192 MiB Java heap defaults as the free Render deployment. Running from IntelliJ still starts Spring Boot directly on port 8080.
