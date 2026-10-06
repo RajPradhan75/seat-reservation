@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: seat-reservation-api
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health/readiness
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: seat-reservation-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: seat-reservation-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: seat-reservation-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: seat-reservation-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: seat-reservation-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_POOL_SIZE
+        value: "16"
+
+databases:
+  - name: seat-reservation-db
+    databaseName: seats
+    user: seats
+    plan: free
+    region: singapore
+    postgresMajorVersion: "17"
+    ipAllowList: []

@@ -60,8 +60,10 @@ inventory/usage invariant violation. Investigate pool saturation, lock waits, de
 and slow transactions. Seat-taken declines are normal on-sale outcomes. PostgreSQL lock diagnostics
 can be inspected through its system views; a PostgreSQL exporter is a future operational improvement.
 
-Structured logs include request IDs, outcome, and latency. Public live logs or a recording are still
-pending deployment deliverables.
+Structured logs include request IDs, outcome, and latency. `/logs` exposes the latest 1,000 sanitized
+request events per instance for public observation during a burst. Routes are normalized; identities,
+bodies, query strings, and authentication headers are excluded. This bounded view resets on restart;
+platform stdout remains the operational log. Public deployment verification is recorded separately.
 
 ## AI usage
 

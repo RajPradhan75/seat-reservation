@@ -20,7 +20,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = BookingController.class, properties = {
+@WebMvcTest(controllers = {BookingController.class, LogsController.class}, properties = {
         "app.jwt.secret=contract-test-only-secret-at-least-32-bytes"})
 @Import(SecurityConfig.class)
 class ApiContractTest {
@@ -63,6 +63,23 @@ class ApiContractTest {
                     .andExpect(status().isBadRequest());
         }
         verifyNoInteractions(shows);
+    }
+
+    @Test
+    void exposesSanitizedCorrelatedLogsWithoutCredentials() throws Exception {
+        UUID show = UUID.randomUUID();
+        http.perform(post("/shows/" + show + "/reserve?secret=private-query")
+                        .header("X-Request-ID", "log-contract-check")
+                        .contentType("application/json").content("{\"user_id\":\"private-body\"}"))
+                .andExpect(status().isUnauthorized());
+        http.perform(get("/logs"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("log-contract-check")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/shows/{id}/reserve")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("private-query"))))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("private-body"))))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString(show.toString()))));
     }
 
     @Test

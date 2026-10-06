@@ -115,6 +115,7 @@ curl -i -X POST "http://localhost:8080/reservations/$RESERVATION_ID/cancel" \
 | `/actuator/health/liveness` | Public | Process liveness |
 | `/actuator/health/readiness` | Public | Readiness including DB connectivity |
 | `/metrics` | Public | Durable business metrics plus JVM/HTTP metrics |
+| `/logs` | Public | Last 1,000 sanitized request events on this instance |
 | `/actuator/prometheus` | Public | JVM/HTTP metrics only |
 
 ### Request rules
@@ -169,8 +170,35 @@ python3 scripts/token-bundle.py --users 20000 --output evaluator.tokens.json
 
 Bundles contain an admin token and distinct users, expire after two hours, and must be shared privately.
 Files matching `*.tokens.json` are ignored by Git.
+For a scheduled evaluation, the operator can set `--ttl` up to 604800 seconds (seven days).
+Never publish token bundles or the signing secret in the repository.
 
 ## Deploy and observe
+
+### Render
+
+The committed `render.yaml` provisions the Docker API and PostgreSQL 17 in Singapore, both on
+the free plan. Deploy using [this Blueprint](https://dashboard.render.com/blueprint/new?repo=https://github.com/RajPradhan75/seat-reservation).
+Render generates the signing secret, injects the database credentials, and checks
+`/actuator/health/readiness`. Database access is internal only. `DB_URL` remains supported for
+other hosts; the Blueprint supplies `DB_HOST`, `DB_PORT`, and `DB_NAME` instead.
+
+Free resources have capacity and lifecycle limits; acceptance requires measured public burst results.
+See `docs/VERIFICATION.md` for the current status, not just the presence of deployment configuration.
+
+### Request logs
+
+`GET /logs` returns a rolling view of the last 1,000 API requests on the current instance, with
+timestamp, request ID, normalized route, HTTP status, duration, and outcome. Query strings,
+request/response bodies, authentication headers, user identities, and resource IDs are excluded.
+Poll this endpoint during a burst for public log access. This bounded diagnostic view resets on
+restart; the platform's structured stdout logs remain the primary operational log.
+
+```sh
+curl "$BASE_URL/logs"
+```
+
+### Runtime configuration
 
 Build with the Dockerfile, provision persistent PostgreSQL, and set platform environment secrets:
 

@@ -47,7 +47,7 @@ public class SecurityConfig {
         return http.csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health/**", "/actuator/prometheus", "/metrics").permitAll()
+                        .requestMatchers("/actuator/health/**", "/actuator/prometheus", "/metrics", "/logs").permitAll()
                         .requestMatchers(HttpMethod.GET, "/shows/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/shows").hasAuthority("SCOPE_admin")
                         .anyRequest().authenticated())

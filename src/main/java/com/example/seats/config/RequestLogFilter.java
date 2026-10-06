@@ -18,6 +18,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RequestLogFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(RequestLogFilter.class);
+    private final com.example.seats.api.LogsController recentLogs;
+
+    public RequestLogFilter(com.example.seats.api.LogsController recentLogs) {
+        this.recentLogs = recentLogs;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -31,10 +36,13 @@ public class RequestLogFilter extends OncePerRequestFilter {
         try {
             chain.doFilter(request, response);
         } finally {
+            long duration = (System.nanoTime() - start) / 1_000_000;
+            recentLogs.record(id, request.getMethod(), request.getRequestURI(),
+                    response.getStatus(), duration, request.getAttribute("outcome"));
             log.atInfo().addKeyValue("method", request.getMethod())
                     .addKeyValue("path", request.getRequestURI())
                     .addKeyValue("status", response.getStatus())
-                    .addKeyValue("duration_ms", (System.nanoTime() - start) / 1_000_000)
+                    .addKeyValue("duration_ms", duration)
                     .addKeyValue("outcome", request.getAttribute("outcome"))
                     .log("HTTP request completed");
             MDC.clear();
