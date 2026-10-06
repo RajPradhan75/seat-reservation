@@ -24,6 +24,14 @@ public class ReservationService {
         List<String> seats = SeatSelection.canonical(requestedSeats);
         // Labels cannot contain commas or colons, so this encoding is unambiguous.
         String canonical = showId + ":" + String.join(",", seats);
+        // The common occupied-seat decline stores its key, response and metric in one DB call.
+        // It never approves allocation; empty results continue through the locked sale path.
+        var fastDecline = db.sql("SELECT http_status, response_json, replayed FROM decline_occupied_seats(?, ?, ?, ?, ?)")
+                .params(showId, userId, key, canonical, json.writeValueAsString(seats))
+                .query((rs, row) -> new Result(rs.getInt(1), json.readTree(rs.getString(2)), rs.getBoolean(3)))
+                .optional();
+        if (fastDecline.isPresent()) return fastDecline.get();
+
         var show = db.sql("SELECT price_paise, per_user_limit FROM shows WHERE id = ?").param(showId)
                 .query((rs, row) -> new ShowRules(rs.getLong(1), rs.getInt(2)))
                 .optional().orElseThrow(ApiException::notFound);

@@ -86,3 +86,7 @@ Render instance failed the full public burst. Next: provide enough hosting capac
 test, and measure inactivity-driven cold starts. See docs/VERIFICATION.md for evidence. Future engineering:
 managed identity and key rotation, event retention/aggregation, dashboards and alerts, backup/restore
 checks, payment integration if needed, and a guarded expiry/confirmation lifecycle if holds are added.
+
+### Reducing hot-seat decline round trips
+
+`V2__occupied_seat_decline.sql` adds `decline_occupied_seats`: one database call observes occupied seats and atomically persists a completed decline, its idempotency key, and its outcome metric. A decline linearizes at its occupancy read, so a later cancellation may free the seat without invalidating the earlier decline. `INSERT ... ON CONFLICT DO NOTHING` waits for an original request with the same key; the following PL/pgSQL statement reads its committed response. Replays and mismatched bodies retain the same behavior. Missing or free seats return no result and use the existing validation and ordered-lock allocation path. This function never allocates seats. All work remains in the caller's transaction and rolls back together.

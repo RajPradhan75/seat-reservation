@@ -155,14 +155,18 @@ async def run(args):
         except asyncio.CancelledError:
             pass
         distribution = Counter(classify(r) for r in results)
-        checks.append(distribution == Counter({'confirmed': 1, 'SEAT_TAKEN': args.requests - 1}))
+        checks.append(distribution == Counter({'confirmed': 1, 'SEAT_TAKEN': args.requests - 1})
+                      and (not args.http2 or versions == Counter({'HTTP/2': args.requests})))
         checks.append(bool(samples) and all(samples))
         print(json.dumps({'scenario': 'hot-seat', 'requests': args.requests, 'concurrency': args.concurrency,
                           'seconds': round(time.monotonic() - started, 3), 'outcomes': distribution,
                           'transport': 'HTTP/2' if args.http2 else 'HTTP/1.1', 'negotiated_versions': dict(versions),
                           'reconciliation_samples': len(samples), 'all_samples_valid': all(samples),
                           'transport_errors': dict(Counter(r[1].get('code') for r in results if r[0] == 0)),
-                          'transport_error_examples': [r[1] for r in results if r[0] == 0][:3]}))
+                          'transport_error_examples': [r[1] for r in results if r[0] == 0][:3],
+                          'http_statuses': dict(Counter(r[0] for r in results)),
+                          'http_error_examples': [{'status': r[0], 'body': r[1]}
+                                                  for r in results if r[0] >= 500 or r[0] == 429][:3]}))
         await final_state(hot, 1)
 
         replay_show = await show(3)
@@ -226,6 +230,6 @@ if __name__ == '__main__':
         pass
     try:
         raise SystemExit(asyncio.run(run(args)))
-    except (RuntimeError, aiohttp.ClientError, asyncio.TimeoutError) as e:
+    except (RuntimeError, aiohttp.ClientError, httpx.HTTPError, asyncio.TimeoutError) as e:
         print(json.dumps({'result': 'FAIL', 'error': str(e)}))
         raise SystemExit(1)

@@ -1,0 +1,4 @@
+{"transport": "HTTP/2", "tls_connections": 200, "requests_per_connection": 100, "automatic_retries": 0}
+{"scenario": "hot-seat", "requests": 20000, "concurrency": 20000, "seconds": 93.312, "outcomes": {"5xx": 15247, "429": 3652, "SEAT_TAKEN": 1100, "confirmed": 1}, "transport": "HTTP/2", "negotiated_versions": {"HTTP/2": 20000}, "reconciliation_samples": 237, "all_samples_valid": false, "transport_errors": {}, "transport_error_examples": []}
+{"show_id": "81681349-66e2-489c-b94a-d0112a1f189e", "counts": null, "reconciles": false}
+{"result": "FAIL", "error": "Show creation failed: (502, {'raw': '<!DOCTYPE html>\\n<html lang=\"en\">\\n  <head>\\n    <meta charset=\"utf-8\">\\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\\n    <title>502</title>\\n    <style>@font-face {\\n  font-fami'})"}
