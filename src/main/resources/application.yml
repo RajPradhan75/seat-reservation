@@ -24,7 +24,7 @@ server:
   port: ${PORT:8080}
   shutdown: graceful
   tomcat:
-    max-connections: 25000
+    max-connections: ${HTTP_MAX_CONNECTIONS:512}
     accept-count: 25000
 
 app:
