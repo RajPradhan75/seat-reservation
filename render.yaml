@@ -33,9 +33,9 @@ services:
       - key: DB_POOL_SIZE
         value: "16"
       - key: HTTP_MAX_CONNECTIONS
-        value: "8192"
+        value: "512"
       - key: JAVA_TOOL_OPTIONS
-        value: "-Xmx192m -XX:ActiveProcessorCount=2 -XX:MaxDirectMemorySize=32m -XX:ReservedCodeCacheSize=64m"
+        value: "-Xmx256m -XX:ActiveProcessorCount=2 -XX:MaxDirectMemorySize=32m -XX:ReservedCodeCacheSize=64m"
       - key: SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT
         value: "180000"
 

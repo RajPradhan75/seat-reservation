@@ -1,0 +1,8 @@
+{"scenario": "hot-seat", "requests": 500, "concurrency": 500, "seconds": 69.61, "outcomes": {"SEAT_TAKEN": 499, "confirmed": 1}, "reconciliation_samples": 196, "all_samples_valid": true, "transport_errors": {}, "transport_error_examples": []}
+{"show_id": "ca788059-c429-4762-84e4-e36598365aed", "counts": {"available": 1, "held": 0, "confirmed": 1, "total_seats": 2}, "reconciles": true}
+{"show_id": "4c6e3ece-c218-47b9-a911-16693316a64b", "counts": {"available": 1, "held": 0, "confirmed": 2, "total_seats": 3}, "reconciles": true}
+{"show_id": "5718ba79-f13e-41bc-a7d8-83baf7e163ee", "counts": {"available": 6, "held": 0, "confirmed": 4, "total_seats": 10}, "reconciles": true}
+{"show_id": "2a652c86-df86-4c19-9ada-36798e293a36", "counts": {"available": 1, "held": 0, "confirmed": 1, "total_seats": 2}, "reconciles": true}
+{"show_id": "2a652c86-df86-4c19-9ada-36798e293a36", "counts": {"available": 0, "held": 0, "confirmed": 2, "total_seats": 2}, "reconciles": true}
+{"show_id": "ca788059-c429-4762-84e4-e36598365aed", "counts": {"available": 1, "held": 0, "confirmed": 1, "total_seats": 2}, "reconciles": true}
+{"result": "PASS", "reservation_outcomes": {"confirmed": 8, "SEAT_TAKEN": 500, "replayed": 99, "IDEMPOTENCY_KEY_REUSED": 1, "PER_USER_LIMIT": 6}, "checks_passed": 19, "checks_total": 19}
