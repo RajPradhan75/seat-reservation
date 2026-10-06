@@ -227,3 +227,7 @@ docker compose start db
 
 Before submitting, verify clean-clone CI, Docker startup, cold starts, DB-outage behavior, and the full
 public burst. Add the public repository URL, live URL, metrics URL, and log access or recording.
+
+### Optional HTTP/2 public burst
+
+Run `./burst.sh <BASE_URL> --http2 --tokens-file evaluator.tokens.json` to issue the same 20,000 concurrent logical requests over 200 TLS connections, with up to 100 HTTP/2 streams per connection. The runner requires HTTP/2 negotiation, reports the transport and actual response versions, and never retries failures. This reduces connection pressure; it does not prove that a 20,000-connection HTTP/1 storm passes. The default remains HTTP/1.1.

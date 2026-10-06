@@ -1,6 +1,12 @@
 name: Verify public Render service
 on:
   workflow_dispatch:
+    inputs:
+      transport:
+        description: HTTP transport for the public burst
+        type: choice
+        options: [http1, http2]
+        default: http1
 permissions:
   contents: read
 jobs:
@@ -20,7 +26,9 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p evidence
-          ./burst.sh https://seat-reservation-api-osgz.onrender.com --requests 20000 --concurrency 20000 | tee evidence/live-burst.jsonl
+          transport_args=()
+          if [ '${{ inputs.transport }}' = http2 ]; then transport_args+=(--http2); fi
+          ./burst.sh https://seat-reservation-api-osgz.onrender.com --requests 20000 --concurrency 20000 "${transport_args[@]}" | tee evidence/live-burst.jsonl
       - name: Capture public observability
         if: always()
         run: |

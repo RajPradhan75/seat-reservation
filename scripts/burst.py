@@ -3,6 +3,10 @@
 import argparse
 import asyncio
 from collections import Counter
+from contextlib import AsyncExitStack
+import math
+
+import httpx
 import importlib.util
 import json
 import os
@@ -18,6 +22,7 @@ def arguments():
     p.add_argument('base_url')
     p.add_argument('--requests', type=int, default=20000)
     p.add_argument('--concurrency', type=int, default=20000)
+    p.add_argument('--http2', action='store_true', help='Use HTTP/2 with up to 100 streams per TLS connection; require negotiated HTTP/2')
     p.add_argument('--tokens-file', help='JSON with admin_token and user_tokens; no signing secret needed')
     args = p.parse_args()
     if args.requests < 10 or args.concurrency < 1:
@@ -47,14 +52,37 @@ async def run(args):
     # Leave some connections for reconciliation reads while the storm is running.
     connector = aiohttp.TCPConnector(limit=args.concurrency + 10)
     timeout = aiohttp.ClientTimeout(total=180)
-    async with aiohttp.ClientSession(connector=connector, timeout=timeout) as client:
-        async def request(method, path, token=None, payload=None, key=None):
+    async with AsyncExitStack() as stack:
+        client = await stack.enter_async_context(aiohttp.ClientSession(connector=connector, timeout=timeout))
+        h2_clients = []
+        versions = Counter()
+        if args.http2:
+            for _ in range(math.ceil(args.concurrency / 100)):
+                h2_clients.append(await stack.enter_async_context(httpx.AsyncClient(
+                    http2=True, timeout=180, limits=httpx.Limits(max_connections=1, max_keepalive_connections=1))))
+            async def warm(c):
+                response = await c.get(base + '/actuator/health/readiness')
+                if response.status_code != 200 or response.http_version != 'HTTP/2':
+                    raise RuntimeError('HTTP/2 warmup failed; refusing a silent HTTP/1 fallback')
+            await asyncio.gather(*(warm(c) for c in h2_clients))
+            print(json.dumps({'transport': 'HTTP/2', 'tls_connections': len(h2_clients),
+                              'requests_per_connection': 100, 'automatic_retries': 0}), flush=True)
+        async def request(method, path, token=None, payload=None, key=None, connection_index=None):
             headers = {}
             if token:
                 headers['Authorization'] = 'Bearer ' + token
             if key:
                 headers['Idempotency-Key'] = key
             try:
+                if args.http2 and connection_index is not None:
+                    r = await h2_clients[connection_index % len(h2_clients)].request(
+                        method, base + path, json=payload, headers=headers)
+                    versions[r.http_version] += 1
+                    try:
+                        body = r.json()
+                    except ValueError:
+                        body = {'raw': r.text[:200]}
+                    return r.status_code, body, dict(r.headers)
                 async with client.request(method, base + path, json=payload, headers=headers) as r:
                     text = await r.text()
                     try:
@@ -62,7 +90,7 @@ async def run(args):
                     except ValueError:
                         body = {'raw': text[:200]}
                     return r.status, body, dict(r.headers)
-            except (aiohttp.ClientError, asyncio.TimeoutError, OSError) as e:
+            except (aiohttp.ClientError, httpx.HTTPError, asyncio.TimeoutError, OSError) as e:
                 return 0, {'code': type(e).__name__, 'message': str(e)}, {}
 
         def classify(result):
@@ -87,7 +115,7 @@ async def run(args):
 
         async def reserve(show_id, user_index, seats, key):
             async with semaphore:
-                result = await request('POST', f'/shows/{show_id}/reserve', users[user_index], {'seats': seats}, key)
+                result = await request('POST', f'/shows/{show_id}/reserve', users[user_index], {'seats': seats}, key, user_index)
                 totals[classify(result)] += 1
                 return result
 
@@ -131,6 +159,7 @@ async def run(args):
         checks.append(bool(samples) and all(samples))
         print(json.dumps({'scenario': 'hot-seat', 'requests': args.requests, 'concurrency': args.concurrency,
                           'seconds': round(time.monotonic() - started, 3), 'outcomes': distribution,
+                          'transport': 'HTTP/2' if args.http2 else 'HTTP/1.1', 'negotiated_versions': dict(versions),
                           'reconciliation_samples': len(samples), 'all_samples_valid': all(samples),
                           'transport_errors': dict(Counter(r[1].get('code') for r in results if r[0] == 0)),
                           'transport_error_examples': [r[1] for r in results if r[0] == 0][:3]}))
