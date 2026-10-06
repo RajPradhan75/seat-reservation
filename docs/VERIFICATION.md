@@ -29,7 +29,7 @@ This fails the live concurrency acceptance bar. The passing CI result must not b
 
 Booking writes queue on virtual threads behind a fair 12-permit semaphore before authentication/DB work. Health and read requests bypass this admission queue; the 16-connection DB pool retains read capacity. This queue only controls resource use; PostgreSQL transactions remain the correctness mechanism. Occupied-seat reads can decline without the hot-seat row lock; available seats must still pass the locked allocation transaction.
 
-The local/CI configuration allows up to 8192 TCP connections. Docker Compose raises kernel listen/SYN backlogs to 32768, and CI uses kernel port forwarding. Render controls its own network queues. After public overload tests, the free Render service is being restored to a 512-connection cap with a 256 MiB Java heap, two reported processors, and bounded direct/code-cache memory. This recovery configuration still needs its own large public capacity verification.
+The local/CI configuration allows up to 8192 TCP connections. Docker Compose raises kernel listen/SYN backlogs to 32768, and CI uses kernel port forwarding. Render controls its own network queues. After public overload tests, the free Render service was restored to a 512-connection cap with a 256 MiB Java heap, two reported processors, and bounded direct/code-cache memory. The recovery deployment is live and its authenticated lifecycle smoke test passed. This configuration still needs its own large public capacity verification.
 
 ## Reproduce
 

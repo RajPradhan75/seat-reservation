@@ -4,7 +4,7 @@ Assigned-seat JSON API: Spring Boot 4.1.1, Java 21, PostgreSQL 17.
 Design and tradeoffs: [WRITEUP.md](WRITEUP.md).
 Test results and outstanding validation: [VERIFICATION.md](docs/VERIFICATION.md).
 
-**Status:** clean-checkout CI passed all 18 tests and a 20,000-concurrent-request burst with zero 5xx or transport errors. The public API passed the lifecycle smoke test, but its free Render instance failed the equivalent 20,000-request public burst. See [verification evidence](docs/VERIFICATION.md).
+**Status:** clean-checkout CI passed all 19 tests and a 20,000-concurrent-request burst with zero 5xx or transport errors. The public API passed the lifecycle smoke test, but its free Render instance failed the equivalent 20,000-request public burst. See [verification evidence](docs/VERIFICATION.md).
 
 ## Start with Docker
 
