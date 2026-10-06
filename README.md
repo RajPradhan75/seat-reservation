@@ -231,3 +231,5 @@ public burst. Add the public repository URL, live URL, metrics URL, and log acce
 ### Optional HTTP/2 public burst
 
 Run `./burst.sh <BASE_URL> --http2 --tokens-file evaluator.tokens.json` to issue the same 20,000 concurrent logical requests over 200 TLS connections, with up to 100 HTTP/2 streams per connection. The runner requires HTTP/2 negotiation, reports the transport and actual response versions, and never retries failures. This reduces connection pressure; it does not prove that a 20,000-connection HTTP/1 storm passes. The default remains HTTP/1.1.
+
+The Docker runtime includes HAProxy and Spring Boot in one container. The proxy forwards at most 12 simultaneous writes and four reads/probes to Java on loopback port 8081. PostgreSQL retains all correctness decisions. Docker Compose caps the API container at 512 MiB and uses the same 192 MiB Java heap defaults as the free Render deployment. Running from IntelliJ still starts Spring Boot directly on port 8080.

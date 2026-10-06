@@ -16,6 +16,8 @@ services:
       retries: 10
   api:
     build: .
+    mem_limit: 512m
+    stop_grace_period: 40s
     sysctls:
       net.core.somaxconn: 32768
       net.ipv4.tcp_max_syn_backlog: 32768
