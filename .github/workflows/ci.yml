@@ -22,7 +22,10 @@ jobs:
       - name: Check startup and reservation lifecycle
         run: python3 scripts/smoke.py http://localhost:8080
       - name: HTTP concurrency check
-        run: ./burst.sh http://localhost:8080 --requests 500 --concurrency 500
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          ./burst.sh http://localhost:8080 --requests 20000 --concurrency 20000 | tee evidence/burst.jsonl
       - name: Check dependency failure
         run: |
           docker compose stop db
