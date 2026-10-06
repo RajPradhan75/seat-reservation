@@ -16,6 +16,9 @@ services:
       retries: 10
   api:
     build: .
+    sysctls:
+      net.core.somaxconn: 32768
+      net.ipv4.tcp_max_syn_backlog: 32768
     environment:
       DB_URL: jdbc:postgresql://db:5432/seats
       DB_USER: seats

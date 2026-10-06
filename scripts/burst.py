@@ -127,7 +127,9 @@ async def run(args):
         checks.append(bool(samples) and all(samples))
         print(json.dumps({'scenario': 'hot-seat', 'requests': args.requests, 'concurrency': args.concurrency,
                           'seconds': round(time.monotonic() - started, 3), 'outcomes': distribution,
-                          'reconciliation_samples': len(samples), 'all_samples_valid': all(samples)}))
+                          'reconciliation_samples': len(samples), 'all_samples_valid': all(samples),
+                          'transport_errors': dict(Counter(r[1].get('code') for r in results if r[0] == 0)),
+                          'transport_error_examples': [r[1] for r in results if r[0] == 0][:3]}))
         await final_state(hot, 1)
 
         replay_show = await show(3)
