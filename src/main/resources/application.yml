@@ -26,7 +26,7 @@ server:
   tomcat:
     max-connections: ${HTTP_MAX_CONNECTIONS:512}
     accept-count: 25000
-    keep-alive-timeout: 1s
+    max-keep-alive-requests: 1
 
 app:
   jwt:

@@ -13,6 +13,8 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
+      - name: Initialize local container secrets
+        run: ./scripts/setup-env.sh
       - name: Real PostgreSQL integration and API tests
         run: ./mvnw -B clean verify
       - name: Configure Docker networking for the connection storm
