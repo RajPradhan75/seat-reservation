@@ -4,8 +4,7 @@ Assigned-seat JSON API: Spring Boot 4.1.1, Java 21, PostgreSQL 17.
 Design and tradeoffs: [WRITEUP.md](WRITEUP.md).
 Test results and outstanding validation: [VERIFICATION.md](docs/VERIFICATION.md).
 
-**Status:** local functional verification complete. Full concurrency validation and public deployment
-are pending.
+**Status:** clean-checkout CI passed all 18 tests and a 20,000-concurrent-request burst with zero 5xx or transport errors. Public deployment is healthy; equivalent load validation on Render is still pending. See [verification evidence](docs/VERIFICATION.md).
 
 ## Start with Docker
 
